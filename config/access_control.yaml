@@ -1,0 +1,5 @@
+access_control:
+    paths:
+      index_path: 'app_index'
+      redirect_after_login_path: 'app_index'
+      redirect_after_logout_path: 'login'

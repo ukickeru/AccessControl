@@ -1,0 +1,26 @@
+{
+    "name": "ukickeru/access-control",
+    "type": "library",
+    "license": "proprietary",
+    "version": "0.1.0",
+    "minimum-stability": "dev",
+    "description": "Security component, using Access Control Lists",
+    "authors": [
+        {
+            "name": "P.Nikolaev",
+            "email": "uk.i.c.k.e.ru@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2.5",
+        "composer/package-versions-deprecated": "1.11.99.1"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "ukickeru\\AccessControl\\": "src/"
+        }
+    }
+}
