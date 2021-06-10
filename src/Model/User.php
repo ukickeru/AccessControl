@@ -2,9 +2,11 @@
 
 namespace ukickeru\AccessControl\Model;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use DomainException;
 use ukickeru\AccessControl\Model\Routes\ApplicationRoutesContainer;
+use ukickeru\AccessControl\Model\Service\Collection\ArrayCollection;
+use ukickeru\AccessControl\Model\Service\Collection\Collection;
+use ukickeru\AccessControl\Model\Service\IdGenerator;
 
 class User implements UserInterface
 {
@@ -12,17 +14,17 @@ class User implements UserInterface
 
     public const DEFAULT_ROLE = 'ROLE_USER';
 
-    private $id;
+    protected $id;
 
-    private $username;
+    protected $username;
 
-    private $password;
+    protected $password;
 
-    private $roles;
+    protected $roles;
 
-    private $groups;
+    protected $groups;
 
-    private $admin = false;
+    protected $admin = false;
 
     public function __construct(
         string $username,
@@ -31,26 +33,13 @@ class User implements UserInterface
         iterable $groups = []
     )
     {
+        $this->id = IdGenerator::generate();
         $this->setUsername($username);
         $this->setPassword($password);
-
-        $roles = array_unique($roles);
-        if (empty($roles)) {
-            $this->roles = new ArrayCollection();
-        } else {
-            $this->roles = new ArrayCollection((array) $roles);
-        }
-
-        $groups = array_unique($groups);
-        if (empty($groups)) {
-            $this->groups = new ArrayCollection();
-        } else {
-            if (empty($this->groups)) {
-                $this->groups = new ArrayCollection((array) $groups);
-            } else {
-                $this->setGroups($groups);
-            }
-        }
+        $this->roles = new ArrayCollection();
+        $this->setRoles($roles);
+        $this->groups = new ArrayCollection();
+        $this->setGroups($groups);
     }
 
     public function getId()
@@ -63,12 +52,12 @@ class User implements UserInterface
         return $this->username;
     }
 
-    public function setUsername(string $username): self
+    public function setUsername(string $username): UserInterface
     {
         $username = trim($username);
 
         if ($username === '') {
-            throw new \DomainException('Имя пользователя не может быть пустой строкой!');
+            throw new DomainException('Имя пользователя не может быть пустой строкой!');
         }
 
         $this->username = $username;
@@ -81,21 +70,21 @@ class User implements UserInterface
         return (string) $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(string $password): UserInterface
     {
         return $this->updatePassword($password);
     }
 
-    public function updatePassword(string $password): self
+    public function updatePassword(string $password): UserInterface
     {
         $password = trim($password);
 
         if ($password === '') {
-            throw new \DomainException('Пароль пользователя не может быть пустой строкой!');
+            throw new DomainException('Пароль пользователя не может быть пустой строкой!');
         }
 
         if (strlen($password) < self::PASSWORD_MIN_LENGTH) {
-            throw new \DomainException('Пароль пользователя не может быть короче '.self::PASSWORD_MIN_LENGTH.' символов!');
+            throw new DomainException('Пароль пользователя не может быть короче '.self::PASSWORD_MIN_LENGTH.' символов!');
         }
 
         $this->password = $password;
@@ -106,7 +95,7 @@ class User implements UserInterface
     /**
      * @return array|string[]
      */
-    public function getRoles(): array
+    public function getRoles(): iterable
     {
         $roles = $this->roles->toArray();
         // guarantee every user at least has ROLE_USER
@@ -115,7 +104,7 @@ class User implements UserInterface
         return array_unique($roles);
     }
 
-    public function addRole(string $role): self
+    public function addRole(string $role): UserInterface
     {
         if (!$this->roles->contains($role)) {
             $this->roles[] = $role;
@@ -124,7 +113,7 @@ class User implements UserInterface
         return $this;
     }
 
-    public function addRoles(iterable $roles): self
+    public function addRoles(iterable $roles): UserInterface
     {
         foreach ($roles as $role) {
             $this->addRole($role);
@@ -133,7 +122,7 @@ class User implements UserInterface
         return $this;
     }
 
-    public function removeRole(string $role): self
+    public function removeRole(string $role): UserInterface
     {
         if ($this->roles->contains($role)) {
             $this->roles->removeElement($role);
@@ -142,14 +131,14 @@ class User implements UserInterface
         return $this;
     }
 
-    public function removeAllRoles(): self
+    public function removeAllRoles(): UserInterface
     {
         $this->roles->clear();
 
         return $this;
     }
 
-    public function setRoles(iterable $roles): self
+    public function setRoles(iterable $roles): UserInterface
     {
         $this->removeAllRoles();
         $this->addRoles($roles);
@@ -160,12 +149,12 @@ class User implements UserInterface
     /**
      * @return Collection|Group[]
      */
-    public function getGroups(): Collection
+    public function getGroups(): iterable
     {
         return $this->groups;
     }
 
-    public function addGroup(Group $group): self
+    public function addGroup(GroupInterface $group): UserInterface
     {
         if (!$this->groups->contains($group)) {
             $this->groups[] = $group;
@@ -175,7 +164,7 @@ class User implements UserInterface
         return $this;
     }
 
-    public function addGroups(iterable $groups): self
+    public function addGroups(iterable $groups): UserInterface
     {
         foreach ($groups as $group) {
             $this->addGroup($group);
@@ -184,7 +173,7 @@ class User implements UserInterface
         return $this;
     }
 
-    public function removeGroup(Group $group): self
+    public function removeGroup(GroupInterface $group): UserInterface
     {
         if ($this->groups->contains($group)) {
             $this->groups->removeElement($group);
@@ -194,7 +183,7 @@ class User implements UserInterface
         return $this;
     }
 
-    public function removeAllGroups(): self
+    public function removeAllGroups(): UserInterface
     {
         foreach ($this->groups as $group) {
             $this->removeGroup($group);
@@ -203,17 +192,12 @@ class User implements UserInterface
         return $this;
     }
 
-    public function setGroups(iterable $groups): self
+    public function setGroups(iterable $groups): UserInterface
     {
-        foreach ($this->groups as $group) {
-            if (!in_array($group,(array) $groups)) {
-                $this->removeGroup($group);
-            }
-        }
-
+        $this->removeAllGroups();
         $this->addGroups($groups);
 
-        return  $this;
+        return $this;
     }
 
     /**
@@ -221,7 +205,7 @@ class User implements UserInterface
      */
     public function getAvailableRoutes(): array
     {
-        $availableRoutes = [];
+        $availableRoutes = ApplicationRoutesContainer::GUARANTEED_ACCESSIBLE_ROUTES;
 
         foreach ($this->getGroups() as $group) {
             $availableRoutes = array_merge(
@@ -230,18 +214,20 @@ class User implements UserInterface
             );
         }
 
-        if (empty($availableRoutes)) {
-            $availableRoutes = array_merge(
-                $availableRoutes,
-                ApplicationRoutesContainer::GUARANTEED_ACCESSIBLE_ROUTES
-            );
-        }
-
         if ($this->isAdmin()) {
             $availableRoutes = array_merge(
                 $availableRoutes,
                 ApplicationRoutesContainer::GUARANTEED_ACCESSIBLE_ROUTES_FOR_ADMIN
             );
+        } else {
+            $availableRoutesKeysToUnset = array_keys(
+                $availableRoutes,
+                ApplicationRoutesContainer::CHANGE_ADMIN_PATH
+            );
+
+            foreach ($availableRoutesKeysToUnset as $keyToUnset) {
+                unset($availableRoutes[$keyToUnset]);
+            }
         }
 
         return array_unique($availableRoutes);
@@ -249,21 +235,21 @@ class User implements UserInterface
 
     public function isRouteAvailable(string $route): bool
     {
+        $route = $this->trimLastSlash($route);
+
+        return in_array(
+            $route,
+            $this->getAvailableRoutes()
+        );
+    }
+
+    private function trimLastSlash(string $route): string
+    {
         if (strlen($route) > 1 && mb_substr($route,strlen($route) - 1,1) === '/') {
             $route = mb_substr($route,0,strlen($route) - 1);
         }
 
-        foreach ($this->getGroups() as $group) {
-            if ($group->isRouteAvailable($route)) {
-                return true;
-            };
-        }
-
-        if (empty($this->availableRoutes)) {
-            return in_array($route,ApplicationRoutesContainer::GUARANTEED_ACCESSIBLE_ROUTES);
-        }
-
-        return false;
+        return $route;
     }
 
     public function isAdmin(): bool
@@ -271,7 +257,7 @@ class User implements UserInterface
         return $this->admin;
     }
 
-    public function setAdmin(bool $admin): self
+    public function setAdmin(bool $admin): UserInterface
     {
         $this->admin = $admin;
 
@@ -281,14 +267,5 @@ class User implements UserInterface
     public function __toString(): string
     {
         return $this->username;
-    }
-
-    public function getSalt()
-    {
-    }
-
-    public function eraseCredentials()
-    {
-        return false;
     }
 }

@@ -4,33 +4,34 @@ namespace ukickeru\AccessControl\UseCase;
 
 use DomainException;
 use ukickeru\AccessControl\Model\User;
+use ukickeru\AccessControl\Model\UserInterface;
 
 interface UserRepositoryInterface
 {
 
     /**
-     * @return array|User[]
+     * @return array|UserInterface[]
      */
     public function getAll(): array;
 
     /**
      * @param string $id
-     * @return User
+     * @return UserInterface
      * @throws DomainException
      */
-    public function getOneById(string $id): User;
+    public function getOneById(string $id): UserInterface;
 
     /**
-     * @param User $user
-     * @return User
+     * @param UserInterface $user
+     * @return UserInterface
      */
-    public function save(User $user): User;
+    public function save(UserInterface $user): UserInterface;
 
     /**
-     * @param User $user
-     * @return User
+     * @param UserInterface $user
+     * @return UserInterface
      */
-    public function update(User $user): User;
+    public function update(UserInterface $user): UserInterface;
 
     /**
      * @param string $id

@@ -1,86 +1,61 @@
 <?php
 
-/*
- *  THIS FILE IS A COPY OF A Symfony\Component\Security\Core\User\UserInterface
- */
-
-/*
- * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace ukickeru\AccessControl\Model;
 
-/**
- * Represents the interface that all user classes must implement.
- *
- * This interface is useful because the authentication layer can deal with
- * the object through its lifecycle, using the object to get the encoded
- * password (for checking against a submitted password), assigning roles
- * and so on.
- *
- * Regardless of how your users are loaded or where they come from (a database,
- * configuration, web service, etc.), you will have a class that implements
- * this interface. Objects that implement this interface are created and
- * loaded by different objects that implement UserProviderInterface.
- *
- * @see UserProviderInterface
- *
- * @author Fabien Potencier <fabien@symfony.com>
- */
+use ukickeru\AccessControl\Model\Service\Collection\Collection;
+
 interface UserInterface
 {
-    /**
-     * Returns the roles granted to the user.
-     *
-     *     public function getRoles()
-     *     {
-     *         return ['ROLE_USER'];
-     *     }
-     *
-     * Alternatively, the roles might be stored on a ``roles`` property,
-     * and populated in any number of different ways when the user object
-     * is created.
-     *
-     * @return string[] The user roles
-     */
-    public function getRoles();
+    public function getId();
+
+    public function getUsername(): string;
+
+    public function setUsername(string $username): UserInterface;
+
+    public function getPassword(): string;
+
+    public function setPassword(string $password): UserInterface;
+
+    public function updatePassword(string $password): UserInterface;
 
     /**
-     * Returns the password used to authenticate the user.
-     *
-     * This should be the encoded password. On authentication, a plain-text
-     * password will be salted, encoded, and then compared to this value.
-     *
-     * @return string|null The encoded password if any
+     * @return Collection|string[]
      */
-    public function getPassword();
+    public function getRoles(): iterable;
+
+    public function addRole(string $role): UserInterface;
+
+    public function addRoles(iterable $roles): UserInterface;
+
+    public function removeRole(string $role): UserInterface;
+
+    public function removeAllRoles(): UserInterface;
+
+    public function setRoles(iterable $roles): UserInterface;
 
     /**
-     * Returns the salt that was originally used to encode the password.
-     *
-     * This can return null if the password was not encoded using a salt.
-     *
-     * @return string|null The salt
+     * @return Collection|GroupInterface[]
      */
-    public function getSalt();
+    public function getGroups(): iterable;
+
+    public function addGroup(GroupInterface $group): UserInterface;
+
+    public function addGroups(iterable $groups): UserInterface;
+
+    public function removeGroup(GroupInterface $group): UserInterface;
+
+    public function removeAllGroups(): UserInterface;
+
+    public function setGroups(iterable $groups): UserInterface;
 
     /**
-     * Returns the username used to authenticate the user.
-     *
-     * @return string The username
+     * @return array|string[]
      */
-    public function getUsername();
+    public function getAvailableRoutes(): array;
 
-    /**
-     * Removes sensitive data from the user.
-     *
-     * This is important if, at any given point, sensitive information like
-     * the plain-text password is stored on this object.
-     */
-    public function eraseCredentials();
+    public function isRouteAvailable(string $route): bool;
+
+    public function isAdmin(): bool;
+
+    public function setAdmin(bool $admin): UserInterface;
 }

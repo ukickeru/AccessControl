@@ -2,9 +2,10 @@
 
 namespace ukickeru\AccessControl\UseCase;
 
-use ukickeru\AccessControl\Model\Group;
-use ukickeru\AccessControl\Model\User;
+use ukickeru\AccessControl\Model\GroupInterface;
+use ukickeru\AccessControl\Model\Service\Collection\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
+use ukickeru\AccessControl\Model\UserInterface;
 
 final class UserDTO
 {
@@ -20,10 +21,10 @@ final class UserDTO
      */
     public $password;
 
-    /** @var array */
+    /** @var ArrayCollection|string[] */
     public $roles = [];
 
-    /** @var Group[]|array */
+    /** @var ArrayCollection|GroupInterface[] */
     public $groups = [];
 
     /** @var array|string[] */
@@ -32,17 +33,22 @@ final class UserDTO
     /** @var boolean */
     public $admin;
 
-    public static function createFromUser(User $user) {
-        $userDTO = new self();
-        $userDTO->id = $user->getId();
-        $userDTO->username = $user->getUsername();
-        $userDTO->password = $user->getPassword();
-        $userDTO->roles = $user->getRoles();
-        $userDTO->groups = $user->getGroups();
-        $userDTO->availableRoutes = $user->getAvailableRoutes();
-        $userDTO->admin = $user->isAdmin();
+    public static function createFromUser(UserInterface $user) {
+        return (new self())
+            ->setId($user->getId())
+            ->setUsername($user->getUsername())
+            ->setPassword($user->getPassword())
+            ->setRoles($user->getRoles())
+            ->setGroups($user->getGroups())
+            ->setAvailableRoutes($user->getAvailableRoutes())
+            ->setAdmin($user->isAdmin())
+        ;
+    }
 
-        return $userDTO;
+    public function __construct()
+    {
+        $this->roles = new ArrayCollection();
+        $this->groups = new ArrayCollection();
     }
 
     public function getId()
@@ -88,10 +94,10 @@ final class UserDTO
 
     public function setRoles(?iterable $roles): self
     {
-        if ($roles === null) {
-            $this->roles = [];
-        } else {
-            $this->roles = $roles;
+        if (!is_null($roles)) {
+            foreach ($roles as $role) {
+                $this->roles->add($role);
+            }
         }
 
         return $this;
@@ -104,10 +110,10 @@ final class UserDTO
 
     public function setGroups(?iterable $groups): self
     {
-        if ($groups === null) {
-            $this->groups = [];
-        } else {
-            $this->groups = $groups;
+        if (!is_null($groups)) {
+            foreach ($groups as $group) {
+                $this->groups->add($group);
+            }
         }
 
         return $this;

@@ -2,7 +2,7 @@
     "name": "ukickeru/access-control",
     "type": "library",
     "license": "proprietary",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "minimum-stability": "dev",
     "description": "Security component, using Access Control Lists",
     "authors": [

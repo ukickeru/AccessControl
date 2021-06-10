@@ -3,33 +3,33 @@
 namespace ukickeru\AccessControl\UseCase;
 
 use DomainException;
-use ukickeru\AccessControl\Model\Group;
+use ukickeru\AccessControl\Model\GroupInterface;
 
 interface GroupRepositoryInterface
 {
     /**
-     * @return array|Group[]
+     * @return array|GroupInterface[]
      */
     public function getAll(): array;
 
     /**
      * @param string $id
-     * @return Group
+     * @return GroupInterface
      * @throws DomainException
      */
-    public function getOneById(string $id): Group;
+    public function getOneById(string $id): GroupInterface;
 
     /**
-     * @param Group $group
-     * @return Group
+     * @param GroupInterface $group
+     * @return GroupInterface
      */
-    public function save(Group $group): Group;
+    public function save(GroupInterface $group): GroupInterface;
 
     /**
-     * @param Group $group
-     * @return Group
+     * @param GroupInterface $group
+     * @return GroupInterface
      */
-    public function update(Group $group): Group;
+    public function update(GroupInterface $group): GroupInterface;
 
     /**
      * @param string $id

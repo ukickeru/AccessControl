@@ -2,7 +2,8 @@
 
 namespace ukickeru\AccessControl\Model\Fixtures;
 
-use ukickeru\AccessControl\Model\Group;
+use ukickeru\AccessControl\Model\GroupInterface;
+use ukickeru\AccessControl\Model\Routes\ApplicationRoutesContainer;
 use ukickeru\AccessControl\Model\User;
 
 class Fixtures
@@ -16,9 +17,11 @@ class Fixtures
             ['user']
         );
 
-        $userGroup = new Group(
+        $userGroup = new GroupInterface(
             'Пользователи',
-            $user
+            $user,
+            null,
+            ApplicationRoutesContainer::GUARANTEED_ACCESSIBLE_ROUTES
         );
         $userGroup->addUser($user);
 
@@ -29,10 +32,11 @@ class Fixtures
         );
         $admin->setAdmin(true);
 
-        $adminGroup = new Group(
+        $adminGroup = new GroupInterface(
             'Администраторы',
             $admin,
-            $userGroup
+            $userGroup,
+            ApplicationRoutesContainer::GUARANTEED_ACCESSIBLE_ROUTES_FOR_ADMIN
         );
         $adminGroup->addUser($admin);
         $adminGroup->setParentGroup($userGroup);

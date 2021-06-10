@@ -3,57 +3,50 @@
 namespace ukickeru\AccessControl\Model;
 
 use DateTime;
-use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping as ORM;
 use DomainException;
 use ukickeru\AccessControl\Model\Routes\ApplicationRoutesContainer;
+use ukickeru\AccessControl\Model\Service\Collection\ArrayCollection;
+use ukickeru\AccessControl\Model\Service\Collection\Collection;
+use ukickeru\AccessControl\Model\Service\IdGenerator;
 
-class Group
+class Group implements GroupInterface
 {
 
-    private $id;
+    protected $id;
 
-    private $name;
+    protected $name;
 
-    private $creator;
+    protected $creator;
 
-    private $creationDate;
+    protected $creationDate;
 
-    private $parentGroup;
+    /**
+     * @ORM\OneToOne(targetEntity=self::class)
+     * @
+     */
+    protected $parentGroup = null;
 
-    private $availableRoutes;
+    protected $availableRoutes;
 
-    private $users;
+    protected $users;
 
     public function __construct(
         string $name,
-        User $creator,
-        self $parentGroup = null,
-        array $availableRoutes = [],
-        array $users = []
+        UserInterface $creator,
+        GroupInterface $parentGroup = null,
+        iterable $availableRoutes = [],
+        iterable $users = []
     )
     {
+        $this->id = IdGenerator::generate();
         $this->setName($name);
         $this->setCreator($creator);
-
-        if (empty($availableRoutes)) {
-            $this->availableRoutes = [];
-        } else {
-            $this->availableRoutes = $availableRoutes;
-        }
-
-        $users = array_unique($users);
-        if (empty($users)) {
-            $this->users = new ArrayCollection();
-        } else {
-            if (empty($this->users)) {
-                $this->users = new ArrayCollection((array) $users);
-            } else {
-                $this->setUsers($users);
-            }
-        }
-
+        $this->availableRoutes = new ArrayCollection();
+        $this->setAvailableRoutes($availableRoutes);
+        $this->users = new ArrayCollection();
+        $this->setUsers($users);
         $this->setParentGroup($parentGroup);
-
         $this->setCreationDate();
     }
 
@@ -67,7 +60,7 @@ class Group
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): GroupInterface
     {
         if (mb_strlen($name) > 255) {
             throw new DomainException('Имя группы не должно быть длиннее 255 символов!');
@@ -78,12 +71,12 @@ class Group
         return $this;
     }
 
-    public function getCreator(): User
+    public function getCreator(): UserInterface
     {
         return $this->creator;
     }
 
-    private function setCreator(User $creator): self
+    protected function setCreator(UserInterface $creator): GroupInterface
     {
         $this->creator = $creator;
 
@@ -98,7 +91,7 @@ class Group
     /**
      * @return $this
      */
-    public function setCreationDate(): self
+    public function setCreationDate(): GroupInterface
     {
         if ($this->creationDate === null) {
             $this->creationDate = new DateTime();
@@ -107,16 +100,15 @@ class Group
         return $this;
     }
 
-    public function getParentGroup(): ?self
+    public function getParentGroup(): ?GroupInterface
     {
         return $this->parentGroup;
     }
 
-    public function setParentGroup(?self $group = null): self
+    public function setParentGroup(?GroupInterface $group = null): GroupInterface
     {
         if ($group === null) {
             $this->parentGroup = null;
-
             return $this;
         }
 
@@ -134,7 +126,7 @@ class Group
         return $this;
     }
 
-    public function isParentGroup(self $group)
+    public function isParentGroup(GroupInterface $group)
     {
         if ($this->id === $group->id) {
             throw new DomainException('Нельзя назначить группу самой себе в качестве родительской!');
@@ -147,59 +139,72 @@ class Group
         return false;
     }
 
+    public function getAvailableRoutesAsArray(): array
+    {
+        if (is_array($this->availableRoutes)) {
+            return $this->availableRoutes;
+        }
+
+        return $this->availableRoutes->toArray();
+    }
+
     /**
-     * @return array|string[]
+     * @return string[]
      */
-    public function getAvailableRoutes(): array
+    public function getAvailableRoutes(): iterable
     {
         if ($this->getParentGroup() instanceof self) {
             return array_unique(
                 array_merge(
-                    $this->availableRoutes,
+                    $this->getAvailableRoutesAsArray(),
                     $this->getParentGroup()->getAvailableRoutes()
                 )
             );
         }
 
         return array_unique(
-            array_merge($this->availableRoutes,ApplicationRoutesContainer::GUARANTEED_ACCESSIBLE_ROUTES)
+            array_merge($this->getAvailableRoutesAsArray(),ApplicationRoutesContainer::GUARANTEED_ACCESSIBLE_ROUTES)
         );
     }
 
-    public function addAvailableRoute(string $route): self
+    public function addAvailableRoute(string $route): GroupInterface
     {
-        if (!in_array($route,$this->availableRoutes)) {
+        if (!$this->availableRoutes->contains($route)) {
             $this->availableRoutes[] = $route;
         }
 
         return $this;
     }
 
-    public function removeAvailableRoute(string $route): self
+    public function addAvailableRoutes(iterable $routes): GroupInterface
     {
-        $elementPosition = array_search($route,$this->availableRoutes);
-
-        if ($elementPosition !== false) {
-            unset($this->availableRoutes[$elementPosition]);
+        foreach ($routes as $route) {
+            $this->addAvailableRoute($route);
         }
 
         return $this;
     }
 
-    public function removeAllAvailableRoutes(): self
+    public function removeAvailableRoute(string $route): GroupInterface
     {
-        $this->availableRoutes = [];
+        if ($this->availableRoutes->contains($route)) {
+            $this->availableRoutes->removeElement($route);
+        }
 
         return $this;
     }
 
-    public function setAvailableRoutes(array $availableRoutes): self
+    public function removeAllAvailableRoutes(): GroupInterface
+    {
+        $this->availableRoutes->clear();
+
+        return $this;
+    }
+
+    public function setAvailableRoutes(iterable $availableRoutes): GroupInterface
     {
         $this->removeAllAvailableRoutes();
-
-        foreach ($availableRoutes as $availableRoute) {
-            $this->addAvailableRoute($availableRoute);
-        }
+        $this->addAvailableRoutes($availableRoutes);
 
         return $this;
     }
@@ -218,14 +223,14 @@ class Group
     }
 
     /**
-     * @return array|User[]
+     * @return Collection|UserInterface[]
      */
-    public function getUsers(): array
+    public function getUsers(): iterable
     {
         return $this->users->toArray();
     }
 
-    public function addUser(User $user): self
+    public function addUser(UserInterface $user): GroupInterface
     {
         if (!$this->users->contains($user)) {
             $this->users[] = $user;
@@ -235,7 +240,16 @@ class Group
         return $this;
     }
 
-    public function removeUser(User $user): self
+    public function addUsers(array $users): GroupInterface
+    {
+        foreach ($users as $user) {
+            $this->addUser($user);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(UserInterface $user): GroupInterface
     {
         if ($this->users->contains($user)) {
             $this->users->removeElement($user);
@@ -245,16 +259,7 @@ class Group
         return $this;
     }
 
-    public function addUsers(array $users): self
-    {
-        foreach ($users as $user) {
-            $this->addUser($user);
-        }
-
-        return $this;
-    }
-
-    public function removeAllUsers(): self
+    public function removeAllUsers(): GroupInterface
     {
         foreach ($this->users as $user) {
             $this->removeUser($user);
@@ -263,14 +268,8 @@ class Group
         return $this;
     }
 
-    public function setUsers(array $users): self
+    public function setUsers(iterable $users): GroupInterface
     {
-        foreach ($this->users as $user) {
-            if (!in_array($user,(array) $users)) {
-                $this->removeUser($user);
-            }
-        }
-
         $this->addUsers($users);
 
         return $this;
@@ -278,7 +277,7 @@ class Group
 
     public function __toString(): string
     {
-        return $this->id.' \ '.$this->name;
+        return $this->name;
     }
 
 }

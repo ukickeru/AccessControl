@@ -2,7 +2,7 @@
 
 namespace ukickeru\AccessControl\Model\Fixtures;
 
-use ukickeru\AccessControl\Model\Group;
+use ukickeru\AccessControl\Model\GroupInterface;
 use ukickeru\AccessControl\Model\User;
 
 class FixturesDTO
@@ -17,9 +17,9 @@ class FixturesDTO
 
     public function __construct(
         User $user,
-        Group $userGroup,
+        GroupInterface $userGroup,
         User $admin,
-        Group $adminGroup
+        GroupInterface $adminGroup
     )
     {
         $this->user = $user;
@@ -33,7 +33,7 @@ class FixturesDTO
         return $this->user;
     }
 
-    public function getUserGroup(): Group
+    public function getUserGroup(): GroupInterface
     {
         return $this->userGroup;
     }
@@ -43,7 +43,7 @@ class FixturesDTO
         return $this->admin;
     }
 
-    public function getAdminGroup(): Group
+    public function getAdminGroup(): GroupInterface
     {
         return $this->adminGroup;
     }

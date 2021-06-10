@@ -43,7 +43,7 @@ final class ChangeAdminPermissionsDTO
         return $this;
     }
 
-    public function getConfirmed(): bool
+    public function isConfirmed(): bool
     {
         return $this->confirmed;
     }
