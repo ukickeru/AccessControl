@@ -2,6 +2,8 @@
 
 namespace ukickeru\AccessControl\Model\Service\CheckResourceAvailability;
 
+use ukickeru\AccessControl\Model\Routes\ApplicationRoutesContainer;
+
 class ResourceInfo
 {
 
@@ -30,6 +32,11 @@ class ResourceInfo
     public function getRouteName(): ?string
     {
         return $this->routeName;
+    }
+
+    public function isApiLoginPage(): bool
+    {
+        return $this->routePath === ApplicationRoutesContainer::API_LOGIN_ROUTE_PATH;
     }
 
 }

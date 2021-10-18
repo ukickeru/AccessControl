@@ -48,7 +48,7 @@ interface GroupInterface
 
     public function addUser(UserInterface $user): GroupInterface;
 
-    public function addUsers(array $users): GroupInterface;
+    public function addUsers(iterable $users): GroupInterface;
 
     public function removeUser(UserInterface $user): GroupInterface;
 

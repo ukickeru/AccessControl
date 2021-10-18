@@ -3,7 +3,6 @@
 namespace ukickeru\AccessControl\Model;
 
 use DateTime;
-use Doctrine\ORM\Mapping as ORM;
 use DomainException;
 use ukickeru\AccessControl\Model\Routes\ApplicationRoutesContainer;
 use ukickeru\AccessControl\Model\Service\Collection\ArrayCollection;
@@ -21,10 +20,6 @@ class Group implements GroupInterface
 
     protected $creationDate;
 
-    /**
-     * @ORM\OneToOne(targetEntity=self::class)
-     * @
-     */
     protected $parentGroup = null;
 
     protected $availableRoutes;
@@ -203,8 +198,7 @@ class Group implements GroupInterface
 
     public function setAvailableRoutes(iterable $availableRoutes): GroupInterface
     {
-        $this->removeAllAvailableRoutes();
-        $this->addAvailableRoutes($availableRoutes);
+        $this->availableRoutes = new ArrayCollection($availableRoutes);
 
         return $this;
     }
@@ -240,7 +234,7 @@ class Group implements GroupInterface
         return $this;
     }
 
-    public function addUsers(array $users): GroupInterface
+    public function addUsers(iterable $users): GroupInterface
     {
         foreach ($users as $user) {
             $this->addUser($user);
@@ -270,6 +264,7 @@ class Group implements GroupInterface
 
     public function setUsers(iterable $users): GroupInterface
     {
+        $this->removeAllUsers();
         $this->addUsers($users);
 
         return $this;

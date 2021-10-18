@@ -122,13 +122,14 @@ final class AccessControlUseCase
             ->setAvailableRoutes($groupDTO->getAvailableRoutes())
         ;
 
+        $group->removeAllUsers();
         /** @var UserDTO $user */
         foreach ($groupDTO->getUsers() as $user) {
             $user = $this->userRepository->getOneById($user->getId());
             $group->addUser($user);
         }
 
-        $this->groupRepository->save($group);
+        $this->groupRepository->update($group);
 
         return $groupDTO;
     }

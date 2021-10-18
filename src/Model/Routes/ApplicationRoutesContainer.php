@@ -7,6 +7,8 @@ class ApplicationRoutesContainer
 
     public const GUARANTEED_ACCESSIBLE_ROUTES = [
         self::INDEX_NAME,
+        self::API_LOGIN_ROUTE_NAME,
+        self::API_LOGOUT_ROUTE_NAME,
         self::LOGIN_ROUTE_NAME,
         self::LOGOUT_ROUTE_NAME,
         self::ACCOUNT_ROUTE_NAME,
@@ -16,6 +18,7 @@ class ApplicationRoutesContainer
 
     public const GUARANTEED_ACCESSIBLE_ROUTES_FOR_ADMIN = [
         self::USER_INDEX_NAME,
+        self::DEVELOPER_TOOLBAR_NAME,
         self::USER_NEW_NAME,
         self::USER_SHOW_NAME,
         self::USER_EDIT_NAME,
@@ -28,6 +31,9 @@ class ApplicationRoutesContainer
         self::CHANGE_ADMIN_NAME
     ];
 
+    public const DEVELOPER_TOOLBAR_NAME = 'dev_toolbar';
+    public const DEVELOPER_TOOLBAR_PATH = '/_wdt';
+
     public const INDEX_NAME = 'app_index';
     public const INDEX_PATH = '/';
 
@@ -36,6 +42,12 @@ class ApplicationRoutesContainer
 
     public const LOGOUT_ROUTE_NAME = 'app_logout';
     public const LOGOUT_ROUTE_PATH = '/logout';
+
+    public const API_LOGIN_ROUTE_NAME = 'api_login';
+    public const API_LOGIN_ROUTE_PATH = '/api/login';
+
+    public const API_LOGOUT_ROUTE_NAME = 'api_logout';
+    public const API_LOGOUT_ROUTE_PATH = '/api/logout';
 
     public const ACCOUNT_ROUTE_NAME = 'account_index';
     public const ACCOUNT_ROUTE_PATH = '/account_index';
@@ -46,7 +58,6 @@ class ApplicationRoutesContainer
     public const ACCOUNT_SETTINGS_ROUTE_NAME = 'account_settings';
     public const ACCOUNT_SETTINGS_ROUTE_PATH = '/account_settings';
 
-    /** @todo Дописать константами пути и использовтаь в контроллерах */
     public const USER_INDEX_NAME = 'user_index';
     public const USER_INDEX_PATH = self::INDEX_PATH.'users/';
 
